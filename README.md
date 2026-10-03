@@ -1,6 +1,6 @@
 # 🧹 Layoffs SQL Data Cleaning
 
-A data cleaning project using **SQL Server (T-SQL)** that transforms a raw global layoffs dataset into a clean, analysis-ready table.
+A data cleaning project using **SQL Server (T-SQL)** that transforms a raw global layoffs dataset into a cleaner, analysis-ready table.
 
 ---
 
@@ -10,8 +10,8 @@ Raw data is rarely ready for analysis. In this project, I cleaned a real-world l
 
 * Removing duplicate records
 * Standardizing inconsistent values
-* Handling missing and NULL values
-* Removing rows with no useful layoff information
+* Reviewing missing and NULL values
+* Removing rows with missing layoff data
 
 All cleaning was performed on **staging tables**, keeping the original `Layoffs` table untouched.
 
@@ -93,25 +93,23 @@ This step also:
 
 ### 3. Standardize Values
 
-* Removed extra spaces from `company` (11 names)
-* Changed `Crypto Currency` and `CryptoCurrency` to `Crypto` in `industry` (3 rows)
-* Changed `United States.` to `United States` in `country` (4 rows)
+* Removed extra spaces from `company`
+* Changed `United States.` to `United States` in `country`
 
-This prevents the same industry or country from being treated as different values during analysis.
-
----
-
-### 4. Handle Missing Values
-
-* Converted blank (`''`) industry values to NULL
-* Filled missing `industry` for **Juul** (Consumer) and **Carvana** (Transportation) using other records of the same company
+This prevents the same company or country from being treated as different values during analysis.
 
 ---
 
-### 5. Remove Unusable Rows
+### 4. Review Missing Values
 
-* Removed **361** records where both `total_laid_off` and `percentage_laid_off` were NULL, since they contain no useful layoff information
-* Set missing `funds_raised_millions` values to `0` (165 rows)
+Checked rows with missing `industry` values and compared **Juul** and **Carvana** against their other records to find the correct industry.
+
+---
+
+### 5. Remove Rows With Missing Layoff Data
+
+* Removed rows with missing layoff information (**1,162** rows after duplicates were removed)
+* Set missing `funds_raised_millions` values to `0`
 
 > **Note:** A missing value does not necessarily mean a company raised zero funds. Keeping NULL would preserve the difference between "zero" and "unknown".
 
@@ -123,10 +121,8 @@ This prevents the same industry or country from being treated as different value
 | --- | ---: |
 | Rows before cleaning | 2,361 |
 | Duplicate rows removed | 5 |
-| Industry labels standardized | 3 |
-| Missing industries filled | 2 |
-| Unusable rows removed | 361 |
-| Rows after cleaning | 1,995 |
+| Rows removed for missing layoff data | 1,162 |
+| Rows after cleaning | 1,194 |
 
 ---
 
@@ -138,17 +134,15 @@ The cleaned data is stored in the table:
 Layoffs_Staging2
 ```
 
-It is ready for SQL analysis and for visualization in tools such as Power BI or Tableau.
-
 ---
 
 ## ⚠️ Decisions & Limitations
 
 * **Raw data preserved:** the original `Layoffs` table was never modified.
-* **Rows without layoff information were removed:** they could not support layoff analysis.
-* **Missing funds set to 0:** this is a simplifying assumption and may not reflect the real amount raised.
-* **Manual industry fixes:** industry values were filled by hand for two companies. A self-join would scale better on larger data.
-* **Industry still missing for two companies:** Airbnb and Bally's Interactive have no other record to copy the industry from, so they remain NULL.
+* **Rows with missing layoff data were removed:** they could not support layoff analysis.
+* **Missing funds set to 0:** a simplifying assumption that may not reflect the real amount raised.
+* **`percentage_laid_off` data type:** the column was imported as an integer, so decimal values (such as 0.15) were rounded to 0. Re-importing it as `FLOAT` would fix this.
+* **Industry labels:** variants such as `Crypto Currency` and `CryptoCurrency` were not merged into `Crypto`.
 * **Date column:** the `date` column has not yet been converted to the `DATE` data type.
 
 ---
@@ -168,13 +162,15 @@ It is ready for SQL analysis and for visualization in tools such as Power BI or 
 * Finding and removing duplicates with window functions
 * Standardizing inconsistent text values
 * Handling NULL and blank values
-* Converting data types
+* Checking data types during import, since a wrong type can silently change values
 * Documenting cleaning decisions and their trade-offs
 
 ---
 
 ## 🚀 Next Steps
 
+* Re-import the data with `percentage_laid_off` as `FLOAT`
+* Merge inconsistent industry labels (for example, all `Crypto%` values into `Crypto`)
 * Convert the `date` column to the `DATE` data type
 * Add data-quality validation checks
 * Perform exploratory analysis (layoffs by year, industry, company and country)
