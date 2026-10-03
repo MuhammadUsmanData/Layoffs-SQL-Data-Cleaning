@@ -135,15 +135,19 @@ Layoffs_Staging2
 ```
 
 ---
-
 ## ⚠️ Decisions & Limitations
 
-* **Raw data preserved:** the original `Layoffs` table was never modified.
-* **Rows with missing layoff data were removed:** they could not support layoff analysis.
-* **Missing funds set to 0:** a simplifying assumption that may not reflect the real amount raised.
-* **`percentage_laid_off` data type:** the column was imported as an integer, so decimal values (such as 0.15) were rounded to 0. Re-importing it as `FLOAT` would fix this.
-* **Industry labels:** variants such as `Crypto Currency` and `CryptoCurrency` were not merged into `Crypto`.
-* **Date column:** the `date` column has not yet been converted to the `DATE` data type.
+* **Raw data preserved:** The original `Layoffs` table was never modified. All cleaning operations were performed on staging tables.
+
+* **Rows with missing layoff data were removed:** Rows where both `total_laid_off` and `percentage_laid_off` were NULL were removed because they could not support meaningful layoff analysis.
+
+* **Missing funds set to 0:** Missing values in `funds_raised_millions` were set to `0`. This is a simplifying assumption and may not represent the actual amount raised. Keeping these values as NULL would be more appropriate when distinguishing between "zero" and "unknown" is important.
+
+* **`percentage_laid_off` data type:** The column was imported as an integer, causing decimal values such as `0.15` to be stored as `0`. This is a data-import issue that should be corrected by importing the column with an appropriate decimal data type, such as `FLOAT` or `DECIMAL`.
+
+* **Industry standardization:** Inconsistent industry labels such as `CRYPTO` and `Cryptocurrency` were standardized to `Crypto`.
+
+* **Date column:** The `date` column has not yet been converted to the `DATE` data type and is planned as a future improvement.
 
 ---
 
